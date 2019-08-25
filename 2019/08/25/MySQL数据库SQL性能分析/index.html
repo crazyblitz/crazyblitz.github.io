@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="zh-Hans"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="description" content="MySQL数据库SQL性能分析"><meta name="keywords" content="MySQL,性能优化"><meta name="author" content="知源"><meta name="copyright" content="知源"><title>MySQL数据库SQL性能分析 | 知源博客</title><link rel="shortcut icon" href="/melody-favicon.ico"><link rel="stylesheet" href="/css/index.css?version=1.6.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css?version=1.6.1"><link rel="dns-prefetch" href="https://cdn.staticfile.org"><link rel="dns-prefetch" href="https://cdn.bootcss.com"><link rel="dns-prefetch" href="https://creativecommons.org"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/instantsearch.js@2.1.1/dist/instantsearch.min.css"><script src="https://cdn.jsdelivr.net/npm/instantsearch.js@2.1.1/dist/instantsearch.min.js" defer></script><link rel="dns-prefetch" href="https://hm.baidu.com"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?628e2ee31ce5c6697d1f5b263b262108";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"QSYLR3XYSH","apiKey":"1b2fe15d5912eb0d3de39fd5574cc460","indexName":"zhiyuan","hits":{"per_page":8},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容:${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  }
+} </script></head><body><canvas class="fireworks"></canvas><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div id="sidebar"><div class="toggle-sidebar-info text-center"><span data-toggle="切换文章详情">切换站点概览</span><hr></div><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar"></div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-查询性能优化"><span class="toc-number">1.</span> <span class="toc-text">1:查询性能优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查询基础"><span class="toc-number">2.</span> <span class="toc-text">2:查询基础</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-优化数据访问"><span class="toc-number">3.</span> <span class="toc-text">(2-1):优化数据访问</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-访问类型"><span class="toc-number">3.1.</span> <span class="toc-text">(2-2):访问类型</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-关于执行计划"><span class="toc-number">4.</span> <span class="toc-text">(2-3):关于执行计划</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3：常见优化"><span class="toc-number">5.</span> <span class="toc-text">3：常见优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4：一些SQL优化建议"><span class="toc-number">6.</span> <span class="toc-text">4：一些SQL优化建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-SQL执行顺序"><span class="toc-number">7.</span> <span class="toc-text">5: SQL执行顺序</span></a></li></ol></div></div><div class="author-info hide"><div class="author-info__avatar text-center"><img src="/img/avatar.png"></div><div class="author-info__name text-center">知源</div><div class="author-info__description text-center">一个程序员成长之路</div><hr><div class="author-info-articles"><a class="author-info-articles__archives article-meta" href="/archives"><span class="pull-left">文章</span><span class="pull-right">71</span></a><a class="author-info-articles__tags article-meta" href="/tags"><span class="pull-left">标签</span><span class="pull-right">62</span></a><a class="author-info-articles__categories article-meta" href="/categories"><span class="pull-left">分类</span><span class="pull-right">13</span></a></div></div></div><div id="content-outer"><div class="no-bg" id="top-container"><div id="page-header"><span class="pull-left"> <a id="site-name" href="/">知源博客</a></span><i class="fa fa-bars toggle-menu pull-right" aria-hidden="true"></i><span class="pull-right menus"><a class="site-page social-icon search"><i class="fa fa-search"></i><span> 搜索</span></a><a class="site-page" href="/">Home</a><a class="site-page" href="/archives">Archives</a><a class="site-page" href="/tags">Tags</a><a class="site-page" href="/categories">Categories</a></span></div><div id="post-info"><div id="post-title">MySQL数据库SQL性能分析</div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2019-08-25</time><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/MySQL/">MySQL</a></div></div></div><div class="layout" id="content-inner"><article id="post"><div class="article-container" id="post-content"><h3 id="1-查询性能优化"><a href="#1-查询性能优化" class="headerlink" title="1:查询性能优化"></a>1:查询性能优化</h3><p>一般来说在编写SQL时，需要注意以下问题：</p>
+<ul>
+<li><strong>是否能使用到索引。</strong></li>
+<li><strong>是否在大表中或者高频率查询中引起全表查询。</strong></li>
+</ul>
+<p>主要通过经验分析配合 <strong>explain</strong> 关键字来进行分析。</p>
+<h3 id="2-查询基础"><a href="#2-查询基础" class="headerlink" title="2:查询基础"></a>2:查询基础</h3><p>了解查询过程，才能知道哪些步骤可能出现瓶颈，<strong>execution plain</strong> 结果也会有限体现：</p>
+<ol>
+<li>Client往服务器发送查询指令</li>
+<li><strong>服务器查询缓存</strong>，如果存在则直接返回，否则下一步</li>
+<li><strong>服务器解析，预处理，优化查询，生成执行计划</strong></li>
+<li>执行引擎调用存储引擎API执行查询</li>
+<li>服务器将结果返回给客户端</li>
+</ol>
+<h3 id="2-1-优化数据访问"><a href="#2-1-优化数据访问" class="headerlink" title="(2-1):优化数据访问"></a>(2-1):优化数据访问</h3><ol>
+<li>应用程序是否获取超过需要的数据量？<strong>(多次遇到过查询表所有数据然后在程序中只读取10行之类的代码。)</strong></li>
+<li>MySQL服务器是否分析了超过需要的行？</li>
+<li>数据是否没有存储引擎层被过来掉？<strong>(Using index,Using where)</strong></li>
+</ol>
+<h4 id="2-2-访问类型"><a href="#2-2-访问类型" class="headerlink" title="(2-2):访问类型"></a>(2-2):访问类型</h4><p><strong>Full Table Scan &gt; Index Scan &gt; Range Scan &gt; Unique Index LookUp &gt; Constant</strong></p>
+<p>访问速度依次递增。</p>
+<p>对于使用where语句来过滤数据的话,最好到最坏的情况是：</p>
+<ol>
+<li>对索引查询用where来消除不匹配的数据行，在存储引擎层。</li>
+<li>使用覆盖索引(Extra为Using Index)来避免访问行，取得索引数据后过滤行，发送在MySQL服务层。</li>
+<li>从表中查询数据，然后过滤(Using Where)，发送在服务端并且要读取行数据。</li>
+</ol>
+<h3 id="2-3-关于执行计划"><a href="#2-3-关于执行计划" class="headerlink" title="(2-3):关于执行计划"></a>(2-3):关于执行计划</h3><p>执行计划结果样例如下图：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/400057/1564148501889-ce986183-0a8a-455f-9d10-16b885b9c27e.png" alt="image.png"></p>
+<p><strong>id,type,key,rows,extra是衡量指标。</strong></p>
+<p>(2-3-1): id: select查询序列号，表示查询中执行select子句或操作表顺序</p>
+<ol>
+<li>id相同，执行顺序由上至下</li>
+<li>id不同，如果是子查询，id序号会递增，<strong>id值越大优先级越高，越先被执行</strong>。</li>
+<li>id相同不同，id如果相同，可以被认为是一组，由上至下执行；在所有组中id值越大，优先级越高，越先被执行。</li>
+</ol>
+<p>(2-3-2)：select_type：查询类型，主要用于区别普通查询，联合查询，子查询等复杂查询</p>
+<ol>
+<li>simple：<strong>简单的select查询，查询不包含子查询。</strong></li>
+<li>primary：查询中若包含任何复杂的子部分，最外层查询则被标记为primary。</li>
+<li>subquery：在select或者where列表中包含了子查询</li>
+<li>derived：在<strong>from列表中包含的子查询被标记为derived(衍生)</strong>，MySQL会递归执行这些子查询，把结果存到临时表中。</li>
+<li>union：在第二个select出现在union之后，则被标记为union。</li>
+<li>union result：从union表获取结果的select</li>
+</ol>
+<p>(2-3-3): table：显示这一行数据是关于哪张表</p>
+<p>(2-3-4)：type：访问类型排列，显示了查询使用何种类型，结果值从最好到最坏。</p>
+<p>system &gt; const &gt; eq_ref &gt; ref &gt; fulltext &gt; ref_or_null &gt; index_merge &gt; unique_subquery &gt; index_subquery &gt; range &gt; index &gt; ALL</p>
+<ol>
+<li>system：表只有一行记录（等于系统表），这是const类型的特列，平时不会出现，这个也可以忽略不计</li>
+<li>const：表示通过索引一次就找到了,<strong>const**</strong>用于比较primary key或者unique索引。**</li>
+<li>eq_ref：唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配。<strong>常见于主键或唯一索引扫描</strong></li>
+<li>ref：非唯一性索引扫描，返回匹配某个单独值的所有行。<strong>属于查找和扫描的混合体</strong></li>
+<li>range：只检索给定范围的行,使用一个索引来选择行。key 列显示使用了哪个索引一般就是在你的where。例如</li>
+</ol>
+<p>语句中出现了between，&lt;，&gt;，in等查询这种范围扫描索引比全表扫描要好。</p>
+<ol>
+<li>index：index和ALL区别为<strong>Index类型只遍历索引树</strong>。index从索引读，ALL从磁盘读。</li>
+<li>all：全表扫描，将遍历全表找到匹配行。</li>
+</ol>
+<p><strong>一般来说，得保证查询至少达到range级别,最好能达到ref。</strong></p>
+<p>举例：</p>
+<ol>
+<li>const：where id = 1 id是写死的常量id只有1条，性能好。</li>
+<li>eq_ref：where t1.id = t2.id t2.id只有1条记录，t2表只有1条记录,t2是全表扫描。</li>
+<li>ref: where col1 = ‘ac’ ac是常量,但是col1是非唯一性索引。</li>
+<li>rang：where id between 30 and 60,。</li>
+<li>index: select id from t1</li>
+<li>all: where条件字段没建立索引,或者索引失效。</li>
+</ol>
+<p>(2-3-5)：possible_keys：显示可能应用在这张表的索引。</p>
+<p>(2-3-6)：key：实际使用到的索引。如果为NULL，则没有使用索引。</p>
+<p>​     <strong>查询中若使用了**</strong>覆盖索引<strong>**，则该索引仅出现在key列表中：select 查询的字段个数、顺序和复合索引的字段的个数、顺序一一符合。</strong></p>
+<p>(2-3-7)：key_len：表示索引使用的字节数。在不损失性能的情况下，长度越短越好。</p>
+<p>(2-3-8)：ref：显示索引的哪一列使用了。</p>
+<p>(2-3-9)：rows：根据表统计信息及索引使用情况，大致估算出找到所需的几率需要读取的行数。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/400057/1564150150409-8d9f1010-ebf4-4327-917a-d183420a5086.png" alt="img"></p>
+<p>(2-3-10)：extra：包含不合适在其他列中显示但十分重要的额外信息。</p>
+<p>（前三个最重要：Using filesort、Using temporary表明语句烂需要优化，Using index表明语句还不错）</p>
+<ol>
+<li><strong>using where</strong>：表名使用了where过滤</li>
+<li><strong>using index</strong>：select操作使用了覆盖索引(<strong>covering index</strong>)。表明效率不错</li>
+<li><strong>using filesort</strong>：说明mysql会对数据使用一个外部的索引排序，而不是按照表内的索引顺序进行读取。</li>
+<li><strong>using tempory</strong>：使用了临时表保存中间结果，MySQL对查询结果排序使用了临时表。常见的<strong>order by,group by</strong>。</li>
+<li>using join buffer：使用了连接缓存</li>
+<li>impossible where：where子句的值总是false</li>
+<li><strong>distinct</strong>：优化distinct操作，在找到第一匹配的元组后即停止找同样值动作。</li>
+</ol>
+<h3 id="3：常见优化"><a href="#3：常见优化" class="headerlink" title="3：常见优化"></a>3：常见优化</h3><ol>
+<li><strong>IN查询能避免则避免，如果避免不了，IN查询的数量不要超过1000。如果是连续的值，应该使用**</strong>between … and …** <strong>。或者使用连接进行替换。</strong></li>
+<li><strong>SELECT语句务必指明字段名称。</strong></li>
+<li><strong>当只需要1条数据时候，使用limit 1。</strong></li>
+<li><strong>如果排序字段没有用到索引，就尽量少排序</strong>。</li>
+<li><strong>如果限制条件其他字段没有索引，尽量少用or。</strong></li>
+<li><strong>尽量使用union all代替union：union比后者再进行唯一性过滤操作。</strong></li>
+<li><strong>不使用ORDER BY RAND()。</strong></li>
+<li><strong>区分IN和EXISTS，not in和not exists**</strong>。**</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> table1 <span class="keyword">where</span> <span class="keyword">id</span> <span class="keyword">in</span> (<span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> tableb) ==&gt;</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> tabla <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> tableb <span class="keyword">where</span> tableb.id = table1.id)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">col</span> <span class="keyword">from</span> table1 <span class="keyword">where</span> table1.id <span class="keyword">not</span> <span class="keyword">in</span> (<span class="keyword">select</span> table2.id <span class="keyword">from</span> table2) ==&gt;</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">col</span> <span class="keyword">from</span> table1,table2 <span class="keyword">where</span> table1.id = table2.id <span class="keyword">and</span> table2.id <span class="keyword">is</span> <span class="literal">null</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>   区分in和exists主要是造成了驱动顺序的改变（这是性能变化的关键），如果是exists，那么以外层表为驱动表，先被访问，如果是IN，那么先执行子查询。所以<strong>IN适合于外表大而内表小的情况。</strong></p>
+<p>   <strong>EXISTS适合于外表小而内表大的情况</strong></p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#in 子查询优化</span></span><br><span class="line"><span class="comment">#仍然in子查询,多查询一次</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> table1 <span class="keyword">where</span> <span class="keyword">id</span> <span class="keyword">in</span>(<span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> table2 <span class="keyword">where</span> 条件)</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> table2 <span class="keyword">where</span> <span class="keyword">id</span> <span class="keyword">in</span>(<span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> (<span class="keyword">select</span> <span class="keyword">id</span> <span class="keyword">from</span> table2 <span class="keyword">where</span> 条件) <span class="keyword">as</span> tbt)</span><br><span class="line"></span><br><span class="line"><span class="comment">#使用left join</span></span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> basic_zdjbxx <span class="keyword">WHERE</span> suiji <span class="keyword">IN</span> ( <span class="keyword">SELECT</span> zdcode <span class="keyword">FROM</span> basic_h <span class="keyword">WHERE</span> zdcode != <span class="string">""</span> )</span><br><span class="line"><span class="keyword">SELECT</span> zd.* <span class="keyword">FROM</span> ( <span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> zdcode <span class="keyword">FROM</span> basic_h <span class="keyword">WHERE</span> zdcode != <span class="string">""</span> ) <span class="keyword">AS</span> h </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> basic_zdjbxx zd <span class="keyword">ON</span> zd.suiji = h.zdcode</span><br><span class="line"></span><br><span class="line"><span class="comment">#使用exists(适用于外表小而内表达的情况)</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> film <span class="keyword">where</span> film_id <span class="keyword">in</span> ( <span class="keyword">select</span> film_id <span class="keyword">from</span> film.actor <span class="keyword">where</span> actor_id = <span class="number">1</span>);</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> film <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> * <span class="keyword">from</span> film_actor <span class="keyword">where</span> actor_id = <span class="number">1</span> <span class="keyword">and</span> film_actor.film_id = film.film_id);</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li></li>
+<li><p><strong>使用合理的分页方式以提高分页的效率。</strong></p>
+</li>
+<li><p>分段查询：<strong>如果选择时间的范围过大，造成查询缓慢。主要是扫描条数过多。可以通过程序，分段进行查询，循环遍历，将结果合并处理。</strong></p>
+</li>
+<li><p><strong>避免在where子句对字段进行null值判断</strong>。对于null的判断会导致引擎放弃使用索引而进行全表扫描。</p>
+</li>
+<li><p><strong>不建议使用%前缀模糊查询。建议走全文索引(solr,elasticsearch)。</strong></p>
+</li>
+</ol>
+<p>​     <strong>在需要创建全文索引之前，请联系DBA确定能否创建。同时需要注意的是查询语句的写法与普通索引的区别</strong></p>
+<ol>
+<li><strong>避免在where子句中对字段进行表达式操作。</strong></li>
+<li><strong>避免隐式转换。**</strong>建议先确定where中的参数类型**</li>
+<li><strong>联合索引遵守最左前缀法则。例如索引含有字段id,name,school,不应该使用name;school无法使用这个索引。常用查询放前面。</strong></li>
+<li><strong>必要时可以使用force index来强制查询走某个索引。</strong></li>
+<li><strong>注意范围查询语句。**</strong>对于联合索引来说，如果存在范围查询，比如between,&gt;,&lt;等条件时，会造成后面的索引字段失效。**</li>
+<li><strong>关于JOIN优化：尽量使用inner join,避免使用left join。inner join会自动找出数据表作用驱动表。利用小表驱动大表(**</strong>减少嵌套循环次数，以减少IO总量及CPU运算次数<strong><strong>)。</strong></strong>合理利用索引：被驱动表的索引字段作为on限制字段。**</li>
+</ol>
+<blockquote>
+<p><strong>参与联合查询的表至少为2张表，一般都存在大小之分。如果连接方式是inner join，在没有其他过滤条件的情况下MySQL会自动选择小表作为驱动表，但是left join在驱动表的选择上遵循的是左边驱动右边的原则，即left join左边的表名为驱动表。</strong></p>
+</blockquote>
+<h3 id="4：一些SQL优化建议"><a href="#4：一些SQL优化建议" class="headerlink" title="4：一些SQL优化建议"></a>4：一些SQL优化建议</h3><ol>
+<li><strong>SQL语句不要写太复杂：一个SQL语句要尽量简单，不要嵌套太多层。</strong></li>
+<li><strong>使用临时表缓存中间结果。</strong></li>
+<li><strong>使用LIKE要注意是否全表扫描。==&gt;在where子句使用!=,&lt;,&gt;,引擎会放弃使用索引,进行全表扫描。</strong></li>
+<li><strong>尽量避免使用or来连接条件。</strong></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select id from t where num = 11 or num = 20 ==&gt;</span><br><span class="line">select id from t where num = 10 union all select id from t where num = 20</span><br><span class="line">select id from t where num in (10,20)</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>union使用注意事项：**</strong>所有select语句中字段数目要相同。**</p>
+<ol>
+<li><strong>尽量避免使用in和not in：当字段是连续值且数字，可以使用between … and …</strong></li>
+<li><strong>可以考虑强制查询使用索引</strong></li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#强制使用主键</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">force</span> <span class="keyword">index</span>(PRI) <span class="keyword">limit</span> <span class="number">2</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">#强制使用索引hollis_index</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">force</span> <span class="keyword">index</span>(hollis_index) <span class="keyword">limit</span> <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">table</span> <span class="keyword">force</span> <span class="keyword">index</span>(PRI,hollis_index) <span class="keyword">limit</span> <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><strong>避免使用表达式，函数等操作作为查询条件。</strong></li>
+<li><strong>尽量避免大事务操作，提高系统并发能力。</strong></li>
+<li><strong>任何地方不要使用select * from t 代替具体字段。</strong></li>
+<li><strong>尽可能使用varchar/nvarchar代替char/nchar</strong></li>
+<li><strong>尽量使用数字型字段。</strong></li>
+<li><strong>索引并不是越多越好。索引会降低insert和update效率</strong></li>
+<li><strong>并不是索引对查询有效，SQL根据表中数据进行优化的，当索引列有大量数据重复时，SQL查询可能不会去利用索引。</strong></li>
+</ol>
+<h3 id="5-SQL执行顺序"><a href="#5-SQL执行顺序" class="headerlink" title="5: SQL执行顺序"></a>5: SQL执行顺序</h3><p><img src="https://cdn.nlark.com/yuque/0/2019/png/400057/1564153060836-b48a4668-8171-4eea-a517-0536c2b86745.png" alt="img"></p>
+<p><strong>写一条SQL查询应当遵循以下顺序。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT XXX FROM XXX WHERE XXX GROUP BY XXX HAVING XXX ORDER BY XXX LIMIT XXX;</span><br></pre></td></tr></table></figure></div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">知源</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://crazyblitz.github.io/2019/08/25/MySQL数据库SQL性能分析/">https://crazyblitz.github.io/2019/08/25/MySQL数据库SQL性能分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://crazyblitz.github.io">知源博客</a>！</span></div></div><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a><a class="post-meta__tags" href="/tags/性能优化/">性能优化</a></div><div class="social-share" data-disabled="google,facebook"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script><nav id="pagination"><div class="next-post pull-right"><a href="/2019/08/24/BeanPostProcessor加载次序及其对Bean造成的影响/"><span>BeanPostProcessor加载次序及其对Bean造成的影响</span><i class="fa fa-chevron-right"></i></a></div></nav><div id="lv-container" data-id="city" data-uid="MTAyMC80NTc5Ny8yMjMwOA=="><script>(function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+})(document, 'script');</script></div></div></div><footer><div class="layout" id="footer"><div class="copyright">&copy;2013 - 2019 By 知源</div><div class="framework-info"><span>驱动 - </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 - </span><a href="https://github.com/Molunerfinn/hexo-theme-melody"><span>Melody</span></a></div><div class="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_page_pv"><i class="fa fa-file-o"></i><span id="busuanzi_value_page_pv"></span><span></span></span></div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@latest/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-ui-pack@latest/velocity.ui.min.js"></script><script src="/js/utils.js?version=1.6.1"></script><script src="/js/fancybox.js?version=1.6.1"></script><script src="/js/sidebar.js?version=1.6.1"></script><script src="/js/copy.js?version=1.6.1"></script><script src="/js/fireworks.js?version=1.6.1"></script><script src="/js/transition.js?version=1.6.1"></script><script src="/js/scroll.js?version=1.6.1"></script><script src="/js/head.js?version=1.6.1"></script><script src="/js/search/algolia.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css"><script>if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
+  $('#nav').addClass('is-mobile')
+  $('footer').addClass('is-mobile')
+}</script><div class="search-dialog" id="algolia-search"><div class="search-dialog__title" id="algolia-search-title">Algolia</div><div id="algolia-input-panel"><div id="algolia-search-input"></div></div><hr><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-stats"></div></div><span class="search-close-button"><i class="fa fa-times"></i></span></div><div class="search-mask"></div></body></html>
