@@ -1,9 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[Java反射详解]]></title>
+    <url>%2F2019%2F09%2F22%2FJava%E5%8F%8D%E5%B0%84%E8%AF%A6%E8%A7%A3%2F</url>
+    <content type="text"><![CDATA[前言动态语言，是指程序在运行期间可以改变其结构：例如新的函数可以引入，已有的函数可以被删除等结构上的变化。比如常见的JavaScript，Ruby，Python等就是动态语言。而C，C++属于静态语言。从反射的角度说JAVA属于半动态语言。 反射 功能 在运行期间，对于任意一个类可以知道该类所有的属性和方法。 对于任意一个对象，都能调用它的任意一个方法或者设置属性。 优缺点 优点：增加扩展性和重用性，调试器和测试功能。例如Spring的Bean的属性填充。 缺点：性能开销大，安全限制，内部暴露。如果一个功能可以不用反射完成，最好不用。 应用场景：如果程序只能在运行时发现对象或者类的真实信息，就可以使用反射。 Java反射API 反射API主要由以下构成：最主要的由Class,Field,Method,Constructor四个类构成。即涵盖属性，方法，类，接口，参数，泛型，代理，数组，修饰符几大块。 Class类：反射的核心类，可以获取类的属性，方法，注解等信息。 Field类：代表类的属性。 Method类：代表类的方法。 Constructor类：代表类的构造方法。 AnnotatedElement类：代表注解。 Modifier类：代表属性或者方法的修饰符。 Proxy类：代表JDK代理。 ParameterizedType类：代表泛型参数类型。 Parameter类：代表方法参数。 反射使用步骤 获取想要操作的类的Class对象，可以通过Class.forName(className)。 调用Class类中方法，即反射的使用阶段。 使用反射API来操作这些信息。 获取Class对象方法 调用某个对象的getClass()方法。 调用某个类的class属性。 使用Class类中forName()静态方法(最安全/性能最好)。 创建对象方法 使用Class对象newInstance()，对象需要用默认构造函数。 使用Constructor对象的newInstance()。需要先获取类的Constructor对象。 Class类中场景方法解读 带有Declared方法的参数：返回本类的所有修饰符的属性或者方法等，注意不包含继承的方法或者属性。示例如下： getDeclaredFields getDeclaredMethods 不带有Declared方法参数：返回本类和继承父类的公有的属性或者方法。 getFields getMethods 总结Java反射脑图如下： Spring中提供了对于反射的常用类如下： ReflectionUtils：反射的重要类 AnnotationUtils：注解相关 GenericTypeResolver和ResolvableType：泛型相关 MethodIntrospector：方法内省(反射)，该类可以在Spring的EventListenerMethodProcessor中发现使用如下：在processBean()方法中： 123456Map&lt;Method, EventListener&gt; annotatedMethods = null;try &#123; annotatedMethods = MethodIntrospector.selectMethods(targetType, (MethodIntrospector.MetadataLookup&lt;EventListener&gt;) method -&gt; AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));&#125; ClassUtils：类相关 BeanUtils：bean初始化相关。]]></content>
+      <categories>
+        <category>Java基础</category>
+      </categories>
+      <tags>
+        <tag>Java基础</tag>
+        <tag>反射</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编码规范之日志处理]]></title>
+    <url>%2F2019%2F09%2F21%2FJava%E4%B9%8B%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86%2F</url>
+    <content type="text"><![CDATA[概述记录应用系统日志主要有三个原因： 记录操作轨迹：数据化的分析用户偏好，有助于优化业务逻辑，为用户提供个性化服务。例如，通过access.log记录用户操作频度和跳转链接，有助于分析用户的后续行为。 监控系统运行状况：有助于建立完善的应用监控体系，工程师可以实时监控系统运行情况，及时报警， 避免故障发生。监控系统运行情况种类： 服务器使用状况：例如内存，CPU等使用情况。例如CPU使用率大于60%，四核服务器中load大于4时发出报警。 应用运行情况：如响应时间，QPS等交互状态。 应用错误信息：如空指针，SQL异常等监控。 回溯系统故障。 日志规范 文件命名方式：appName_logType_logName.log。其中logType为日志类型，推荐分类有stats,monitor, ,visit等。logName为日志描述,最好可以通过文件名知道文件属于什么应用，什么类型，什么目的。例如mppserver应用中单独监控时区转换异常日志文件名定义：mppserver_monitor_timeZoneConvert.log。 日志文件存储时限：日志至少保留15天，可以根据日志文件重要程度，文件大小及磁盘空间再自行延迟保存时间。 日志级别 debug：记录对调试程序有帮助的信息。 info：记录程序运行现场，但是对排除其他错误具有指导意义。 warn：更偏向于表名此处有出现潜在错误可能性。 error：当前程序运行发生错误，需要被关注，但是当前发生错误，没有影响到系统的继续运行。 fatal：当前程序运行出现严重错误事件，并且将会导致程序中断。 预先判断日志级别。对于debug,info级别日志，必须使用条件输出或者使用占位符的方式打印。该约定考虑到程序运行效率和日志打印需求。 1234// 使用条件判断形式和占位符if (log.isDebugEnabled()) &#123; log.debug("Processing trade with id: &#123;&#125; and symbol: &#123;&#125;",id,symbol);&#125; 避免无效打印日志。生产环境禁止输出DEBUG日志且有选择的输出INFO日志。使用INFO，WAR级别来记录业务行为信息时，一定要控制日志输出量。避免重复打印，务必在日志配置文件设置additivity=false。 1&lt;logger name="com.taobao.ecrm.member.config" additivity="false"/&gt; 区别对待错误日志。WARN，ERROR都是与错误有关的日志级别。如果业务异常是可以通过引导重试就能恢复正常的，使用WARN级别。ERROR级别表示一旦出现就需要认为介入，所有ERROR只记录系统逻辑错误，异常或者违反重要业务规则，其他错误都可以归为WARN级别。 保证记录内容完整。日志记录内容包括现场上下文与异常堆栈信息，所以打印时需要注意一下两点： 记录异常时一定要输出异常堆栈：logger.error(e.getMeesage,e)。 日志中如果输出对象实例，要确保实例重写了toString()方法，否则只输出hashCode值没有意义。 记录日志思考问题： 日志是否有人看。 看到这条日志能做什么。 能不能提升问题排查效率。]]></content>
+      <categories>
+        <category>编码规范</category>
+      </categories>
+      <tags>
+        <tag>编码规范</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编码规范之日志处理]]></title>
+    <url>%2F2019%2F09%2F21%2F%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83%E4%B9%8B%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86%2F</url>
+    <content type="text"></content>
+      <categories>
+        <category>编码规范</category>
+      </categories>
+      <tags>
+        <tag>编码规范</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编码规范之异常处理]]></title>
+    <url>%2F2019%2F09%2F21%2F%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83%E4%B9%8B%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%2F</url>
+    <content type="text"></content>
+      <categories>
+        <category>编码规范</category>
+      </categories>
+      <tags>
+        <tag>编码规范</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[编码规范之异常处理]]></title>
+    <url>%2F2019%2F09%2F21%2FJava%E4%B9%8B%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%2F</url>
+    <content type="text"><![CDATA[概述处理程序异常，需要解决以下三个问题。 哪里发生异常？ 谁来处理异常? 如何处理异常？ 哪里发生异常在Java中，代码可以通过try-catch来发现异常。捕获异常时需要稳定代码和非稳定代码，稳定代码是无论如何都不会出错的代码。异常捕获是针对非稳定代码，捕获时要区分异常类型并做响应的处理。 谁来处理异常在之前需要明确两个关键字throw和throws区别。throw是方法内部抛出具体异常对象的关键字，而throws则用在方法签名上，表示方法调用者可以通过此方法声明向上抛出异常对象。如果异常在当前方法处理能力范围之内且没有必要对外透出，那么直接捕获异常并做响应处理；否则向上抛出，由上层方法或者框架来处理。 如何处理异常严禁捕获异常后什么都不做或者打印一行日志了事。如果在方法内部处理异常，需要根据不同的业务场景进行定制处理，如重试，回滚等操作。如果向上抛出异常，需要在异常对象中添加上下文参数，局部变量，运行环境等信息。 异常分类JDK定义一套完整的异常机制，所有异常都是Throwable的子类，分为Error(致命异常)和Exception(非致命异常)。 Error异常：标志着系统发生不可控错误，例如OutOfMemoryError，StackOverflowError等。此类错误，程序无法处理，只能人工介入。 Exception异常 checked异常(受检异常)：需要在代码中显示处理异常，否则编译出错。例如SQLException，ClassNotFoundException，IOException等。 无能为力，引起注意型：一般处理此类异常做法是完整保存异常现场，供开发工程师介入解决。 力所能及型，坦然处置型。 unchecked异常(运行时异常)：它们都继承子RuntimeExeption，不需要程序进行显示捕捉和处理。 可预测异常：包括IndexOutOfBoundsException，NullPointerException等，此类异常不应该被产生或者抛出，应该提前做好预防。 需捕捉异常：例如Dubbo框架进行PRC调用时产生远程服务超时异常DubboTimeoutException，此类异常是客户端必须显示处理异常。可以通过重试或者降级处理等。 可透出异常：主要是指框架或者系统产生且自行处理的异常，程序无需关系。例如针对Spring框架抛出的的 NoSuchRequestHandlingMethodException异常，Spring框架会自己处理异常，默认将自身抛出的异常自动映射到合适的状态码。 异常分类结构： try代码块try-catch-finally是处理程序三部曲。当存在try时，catch和finally关键字必须存在1个。关键字作用： try代码块：监视代码执行过程，一旦发生异常直接跳转至catch，如果没有catch，直接跳转到finally。 catch代码块：可选执行代码块，如果没有任何异常发生则不会执行。 finally代码块：必选执行代码块，不管是否有异常发生，通常用于处理善后清理工作。如果没有执行，可能有三种可能： 没有进入try代码块。 进行try代码块，但是代码运行出现死循环或者死锁状态。 进入try代码块，但是执行了System.exit()操作。 注意，finally代码块是在return表达式执行之后运行的。所以不要在finally代码块使用return操作。一般该代码块职责是做一些善后操作，例如清理资源，释放连接，关闭流管道，线程池等。 异常的抛与接推荐做法： 对外提供的开放接口使用错误码。 公司内部跨运用远程服务调用优先考虑使用Result对象来封装错误码，错误描述信息。这里这样做法，是为了防止一旦调用方没有捕获异常，可能会产生运行时错误，导致程序中断。 应用内部则推荐直接抛出异常对象。 防止NPE一定是调用方责任，需要调用方进行事先判断。]]></content>
+      <categories>
+        <category>编码规范</category>
+      </categories>
+      <tags>
+        <tag>编码规范</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[使用Hexo搭配Github搭建个人博客]]></title>
+    <url>%2F2019%2F09%2F21%2F%E4%BD%BF%E7%94%A8Hexo%E6%90%AD%E9%85%8DGithub%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%2F</url>
+    <content type="text"></content>
+  </entry>
+  <entry>
     <title><![CDATA[面对对象思想]]></title>
     <url>%2F2019%2F09%2F20%2F%E9%9D%A2%E5%AF%B9%E5%AF%B9%E8%B1%A1%E6%80%9D%E6%83%B3%2F</url>
-    <content type="text"></content>
+    <content type="text"><![CDATA[概述面对对象有四大特性：抽象，封装，继承，多态。面对对象思维，以对象模型为核心，丰富模型内涵，扩展模型外延，通过模型的行为组合去共同解决某一类问题。 抽象是面对对象思想最基础的能力之一，即业务建模能力。 封装是一种对象功能内聚的表现形式，使模块之间耦合度变低。 继承是子类能够继承父类，获取父类的部分属性和行为，使模块更具有复用性。 多态使模块在复用性的基础上更具有扩展性，使运行期更有想象空间。 抽象抽象是程序员的核心素质之一，体现出程序员对业务的建模能力，以及对架构的宏观掌控力。抽象分为归纳和演绎。归纳的过程中，需要抽象出对象的属性和行为的共性。演绎是在已有问题解决方案基础上，正确找出合适的使用场景。 封装封装是在抽象的基础上决定信息是否公开，以及公开等级。封装的主要任务是对属性，数据，部分内部行为实现隐藏。在不知道什么样的访问权限合适的时候，优先推荐使用private控制级别。下图是Java的访问权限： 封装访问权限建议：尽可能的使成员和方法访问权限小。 继承 继承是面对对象技术的基础，允许创建具有逻辑等级结构的类体系，形成一个继承树，让软件在业务多变的客观条件下，某些基础模块可以直接复用，间接复用或者增强复用。符合里氏代换原则(LSP)，它指任何父类能够出现的地方，子类都能够出现。在设计中，提倡组合优先原则来扩展类的能力，而不是继承。 类关系： 继承：extends(is-a) 实现：implements(can-do) 组合：类是成员变量(contains-a)。各个部分都有其独立的使用价值和生命周期，所有成员共同完成一件使命，生命周期一样，是一种非常强的整体和部分关系。 聚合：类是成员变量(has-a)。是一种可以拆分的整体和部分的关系，是非常松散的关系。 依赖：import类(use-a)。类只要import，就是依赖关系。 类关系示例图： ​ 多态多态是以上述三个面对对象特性为基础，根据运行时的实际对象类型，同一个方法产生不同的运行结果，使同一个行为具有不同的表现形式。具体表现形式有重写(overide)和重载(overload)。 重写：是子类实现接口，或者继承父类时，保持方法签名完全相同，实现不同的方法体，是垂直方向的行为不同表现。Java中遵循一大两小两同。 一大 : 子类的方法访问权限控制符只能相同或变大。 两小: 抛出异常和返回值只能变小能够转型成父类对象。子类的返回值, 抛出异常类型必须与父类的 返回值、抛出异常类型存在继承关系。 两同: 方法名和参数必须完全相同。 重载：是本一个类方法名称相同，但是参数类型或者参数个数不同，是水平方向行为的不同实现。JVM选择合适的目标方法顺序如下： 精确匹配。 如果是基本类型，自动转换为更大表示范围基本类型。 通过自动拆箱和装箱。 通过子类向上转型继承路线依次匹配 通过可变参数匹配。]]></content>
       <categories>
         <category>OOP</category>
       </categories>
@@ -414,9 +475,9 @@
       </categories>
       <tags>
         <tag>Java基础</tag>
+        <tag>反射</tag>
         <tag>AOP</tag>
         <tag>Spring</tag>
-        <tag>反射</tag>
       </tags>
   </entry>
   <entry>
